@@ -24,10 +24,20 @@
 #    ***
 #     *
 
+def print_diamond(size, num)
+  num_of_spaces = (size - num)/2
+  puts " " * num_of_spaces + "*" * num + " " * num_of_spaces
+end
+
 def diamond(number)
-  
+  1.step(number, 2) { |num| print_diamond(number, num)  }
+  (number-2).step(1, -2) { |num|  print_diamond(number, num)  }
 end
 
 diamond(1)
+puts
+puts
 diamond(3)
+puts
+puts
 diamond(9)
