@@ -1,8 +1,10 @@
 require 'pry'
+require 'pry-byebug'
 
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                 [[1, 5, 9], [3, 5, 7]]
+
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
@@ -13,8 +15,6 @@ end
 
 # rubocop: disable Metrics/AbcSize
 def display_board(brd)
-  system 'clear'
-
   prompt "You're a #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}"
 
   puts ""
@@ -43,10 +43,21 @@ def empty_squares(brd)
   brd.keys.select { |num| brd[num] == INITIAL_MARKER }
 end
 
+def joinor(brd, delimiter=', ', word='or')
+  case brd.size
+  when 0 then ''
+  when 1 then brd.first.to_s
+  when 2 then brd.join(" #{word} ")
+  else
+    brd[-1] = "#{word} #{brd.last}"
+    brd.join(delimiter)
+  end
+end
+
 def player_places_piece!(brd)
   square = ''
   loop do
-    prompt "Choose a square (#{empty_squares(brd).join(',')}):"
+    prompt "Choose a square (#{joinor(empty_squares(brd), ', ')}):"
     square = gets.chomp.to_i
     break if empty_squares(brd).include?(square)
     prompt "Sorry, that is not a valid choice."
@@ -56,8 +67,32 @@ def player_places_piece!(brd)
 end
 
 def computer_places_piece!(brd)
-  square = empty_squares(brd).sample
-  brd[square] = COMPUTER_MARKER
+  empty_squares(brd).each do |num|
+    brd[num] = COMPUTER_MARKER
+    if detect_winner(brd) == 'Computer'
+      brd[num] = COMPUTER_MARKER
+      return brd[num]
+    else
+      brd[num] = INITIAL_MARKER
+    end
+  end
+
+  empty_squares(brd).each do |num|
+    brd[num] = PLAYER_MARKER
+    if detect_winner(brd) == 'Player'
+      brd[num] = COMPUTER_MARKER
+      return brd[num]
+    else
+      brd[num] = INITIAL_MARKER
+    end
+  end
+
+  if brd[5] == INITIAL_MARKER
+    brd[5] = COMPUTER_MARKER
+  else
+    square = empty_squares(brd).sample
+    brd[square] = COMPUTER_MARKER
+  end
 end
 
 def board_full?(brd)
@@ -79,25 +114,53 @@ def detect_winner(brd)
   nil
 end
 
+prompt "Welcome to Tic Tac Toe."
+prompt "The first to 5 will be declared the winner."
+puts
+
 loop do
-  board = initialize_board
+  player_score = 0
+  computer_score = 0
 
   loop do
+    board = initialize_board
+
+    loop do
+      display_board(board)
+
+      player_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+
+      computer_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+
+      system 'clear'
+    end
+
     display_board(board)
 
-    player_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
+    if someone_won?(board)
+      player_score += 1 if detect_winner(board) == 'Player'
+      computer_score += 1 if detect_winner(board) == 'Computer'
 
-    computer_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
+      prompt "#{detect_winner(board)} won!"
+      puts
+      prompt "You are on #{player_score}."
+      prompt "The computer is on #{computer_score}."
+    else
+      prompt "It's a tie!"
+      puts
+      prompt "You remain on #{player_score}."
+      prompt "The computer remains on #{computer_score}."
+    end
+
+    break if player_score == 5 || computer_score == 5
   end
 
-  display_board(board)
-
-  if someone_won?(board)
-    prompt "#{detect_winner(board)} won!"
+  if player_score == 5
+    prompt "Woo hoo! you are winner."
   else
-    prompt "It's a tie!"
+    prompt "Bugger. The computer got lucky!"
   end
 
   prompt "Do you want to play again? (y or n)"
