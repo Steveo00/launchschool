@@ -9,6 +9,8 @@ INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
 
+GAMES_TO_WIN = 5
+
 def prompt(msg)
   puts "=> #{msg}"
 end
@@ -115,7 +117,7 @@ def detect_winner(brd)
 end
 
 prompt "Welcome to Tic Tac Toe."
-prompt "The first to 5 will be declared the winner."
+prompt "The first to #{GAMES_TO_WIN} will be declared the winner."
 puts
 
 loop do
@@ -154,10 +156,10 @@ loop do
       prompt "The computer remains on #{computer_score}."
     end
 
-    break if player_score == 5 || computer_score == 5
+    break if player_score == GAMES_TO_WIN || computer_score == GAMES_TO_WIN
   end
 
-  if player_score == 5
+  if player_score == GAMES_TO_WIN
     prompt "Woo hoo! you are winner."
   else
     prompt "Bugger. The computer got lucky!"
