@@ -11,6 +11,8 @@ COMPUTER_MARKER = 'O'
 
 GAMES_TO_WIN = 5
 
+PLAY_FIRST = 'choose' # Options are 'player', 'computer' or 'choose'
+
 def prompt(msg)
   puts "=> #{msg}"
 end
@@ -68,22 +70,21 @@ def player_places_piece!(brd)
   brd[square] = PLAYER_MARKER
 end
 
-def computer_places_piece!(brd)
+def computer_win?(brd)
   empty_squares(brd).each do |num|
     brd[num] = COMPUTER_MARKER
-    if detect_winner(brd) == 'Computer'
-      brd[num] = COMPUTER_MARKER
-      return brd[num]
-    else
-      brd[num] = INITIAL_MARKER
-    end
+    break if detect_winner(brd) == 'Computer'
+    brd[num] = INITIAL_MARKER
   end
+end
+
+def computer_places_piece!(brd)
+  computer_win?(brd)
 
   empty_squares(brd).each do |num|
     brd[num] = PLAYER_MARKER
     if detect_winner(brd) == 'Player'
-      brd[num] = COMPUTER_MARKER
-      return brd[num]
+      return brd[num] = COMPUTER_MARKER
     else
       brd[num] = INITIAL_MARKER
     end
@@ -92,8 +93,7 @@ def computer_places_piece!(brd)
   if brd[5] == INITIAL_MARKER
     brd[5] = COMPUTER_MARKER
   else
-    square = empty_squares(brd).sample
-    brd[square] = COMPUTER_MARKER
+    brd[empty_squares(brd).sample] = COMPUTER_MARKER
   end
 end
 
@@ -120,6 +120,24 @@ prompt "Welcome to Tic Tac Toe."
 prompt "The first to #{GAMES_TO_WIN} will be declared the winner."
 puts
 
+first = ''
+
+if PLAY_FIRST == 'choose'
+  puts "Who would you like to play first to start each game?"
+  loop do
+    puts "Please choose either 'player' or 'computer':"
+    first = gets.chomp.downcase
+    break if first == 'player' || first == 'computer'
+    puts "Invalid choice."
+  end
+elsif PLAY_FIRST == 'player'
+  first = 'player'
+elsif PLAY_FIRST == 'computer'
+  first = 'computer'
+else
+  puts "PLAY_FIRST variable has been incorrectly set"
+end
+
 loop do
   player_score = 0
   computer_score = 0
@@ -127,19 +145,28 @@ loop do
   loop do
     board = initialize_board
 
-    loop do
-      display_board(board)
+    if first == 'player'
+      loop do
+        display_board(board)
+        player_places_piece!(board)
+        display_board(board)
+        break if someone_won?(board) || board_full?(board)
 
-      player_places_piece!(board)
-      break if someone_won?(board) || board_full?(board)
+        computer_places_piece!(board)
+        break if someone_won?(board) || board_full?(board)
+        system 'clear'
+      end
+    elsif first == 'computer'
+      loop do
+        computer_places_piece!(board)
+        display_board(board)
+        break if someone_won?(board) || board_full?(board)
 
-      computer_places_piece!(board)
-      break if someone_won?(board) || board_full?(board)
-
-      system 'clear'
+        player_places_piece!(board)
+        break if someone_won?(board) || board_full?(board)
+        system 'clear'
+      end
     end
-
-    display_board(board)
 
     if someone_won?(board)
       player_score += 1 if detect_winner(board) == 'Player'
