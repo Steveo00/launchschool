@@ -1,3 +1,5 @@
+# I decided to enhance the game to include gambling
+
 SUITS = ['hearts', 'diamonds', 'clubs', 'spades']
 CARDS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king', 'ace']
 
